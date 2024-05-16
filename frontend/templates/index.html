@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Random Number Generator</title>
+</head>
+<body>
+    <h1>Random Number Generator</h1>
+    <button onclick="generateNumbers()">Generate Random Numbers</button>
+    <button onclick="getResults()">Get Results</button>
+    <button onclick="getAllNumbers()">List All Numbers</button>
+    <pre id="output"></pre>
+
+</body>
+</html>
+
+<script>
+    async function generateNumbers() {
+
+        document.getElementById('output').textContent = 'Generating 10,000';
+
+        for (let i = 0; i < 10000; i++) {
+            try {
+                const response = fetch('/generate');
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('output').textContent = 'Error: ' + error;
+            }
+        }   
+        document.getElementById('output').textContent = '10,000 Numbers Generated';
+    }
+
+    async function getResults() {
+        try {
+            const response = await fetch('/results');
+            const data = await response.json();
+            document.getElementById('output').textContent = JSON.stringify(data, null, 2);
+        } catch (error) {
+            console.error('Error:', error);
+            document.getElementById('output').textContent = 'Error: ' + error;
+        }
+    }
+
+    async function getAllNumbers() {
+        try {
+            console.log('Fetching all numbers...');
+            const response = await fetch('/all_numbers');
+            console.log('Response:', response);
+            if (!response.ok) {
+                throw new Error('Network response was not ok: ' + response.statusText);
+            }
+            const data = await response.json();
+            document.getElementById('output').textContent = JSON.stringify(data, null, 2);
+        } catch (error) {
+            console.error('Error:', error);
+            document.getElementById('output').textContent = 'Error: ' + error;
+        }
+    }
+</script>

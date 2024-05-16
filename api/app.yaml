@@ -1,0 +1,10 @@
+runtime: python39
+service: api
+
+automatic_scaling:
+  min_instances: 5
+  max_instances: 15
+
+handlers:
+- url: /.*
+  script: auto
