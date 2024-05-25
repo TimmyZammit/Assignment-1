@@ -15,18 +15,36 @@
 
 <script>
     async function generateNumbers() {
+        document.getElementById('output').textContent = 'Starting to generate 10,000 numbers...';
 
-        document.getElementById('output').textContent = 'Generating 10,000';
+        let count = 0;
+        const totalRequests = 10000;
+        const promises = [];
 
-        for (let i = 0; i < 10000; i++) {
-            try {
-                const response = fetch('/generate');
-            } catch (error) {
-                console.error('Error:', error);
-                document.getElementById('output').textContent = 'Error: ' + error;
-            }
-        }   
-        document.getElementById('output').textContent = '10,000 Numbers Generated';
+        for (let i = 0; i < totalRequests; i++) {
+            const promise = fetch('/generate')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json(); // Assuming your server returns JSON
+                })
+                .then(data => {
+                    count++;
+                    document.getElementById('output').textContent = `${count} numbers generated...`;
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    document.getElementById('output').textContent = 'Error: ' + error;
+                });
+
+            promises.push(promise);
+        }
+
+        // Wait for all promises to settle
+        await Promise.allSettled(promises);
+
+        document.getElementById('output').textContent = `${count} numbers generated in total.`;
     }
 
     async function getResults() {

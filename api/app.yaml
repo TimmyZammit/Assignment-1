@@ -1,10 +1,18 @@
 runtime: python39
 service: api
 
-automatic_scaling:
-  min_instances: 5
-  max_instances: 15
-
+instance_class: F4
 handlers:
-- url: /.*
-  script: auto
+  - url: /.*
+    script: auto
+  - url: .*
+    script: auto
+automatic_scaling:
+  min_idle_instances: automatic
+  max_idle_instances: automatic
+  min_pending_latency: 100ms
+  max_pending_latency: 200ms
+  max_concurrent_requests: 50  # Increase this value
+  min_instances: 5
+  max_instances: 20
+service_account: assignment-1-v2@appspot.gserviceaccount.com
