@@ -13,7 +13,7 @@ connector = Connector()
 
 def getconn():
     conn = connector.connect(
-        "assignment-1-v2:europe-west1:num-storage",
+        "assignment-1-424613:europe-west1:num-storage",
         "pymysql",
         user="root",
         password="Kozhikode2003!",
@@ -24,6 +24,8 @@ def getconn():
 pool = sqlalchemy.create_engine(
     "mysql+pymysql://",
     creator=getconn,
+    pool_size=1,         # The number of connections to maintain in the pool
+    max_overflow=0,       # The number of additional connections allowed beyond pool_size
 )
 print("sql config done")
 
@@ -46,39 +48,27 @@ def generate_random_number():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-@app.route('/results')
-def instance_summary():
-    query = sqlalchemy.text("""
-        SELECT instance_name, COUNT(*) as count
-        FROM generated_numbers
-        GROUP BY instance_name
-    """)
+@app.route('/all_numbers')
+def list_all_numbers():
+    query = sqlalchemy.text("SELECT instance_id, number FROM numbers")
     with pool.connect() as db_connection:
         result = db_connection.execute(query)
-        summary = [{"instance_name": row[0], "count": row[1]} for row in result]
-    return jsonify(summary)
+        numbers_list = [{"instance_id": row[0], "number": row[1]} for row in result]
+    return jsonify(numbers_list)
 
-@app.route('/all_numbers')
+
+@app.route('/results')
 def extreme_numbers():
-    min_query = sqlalchemy.text("SELECT number, instance_name FROM generated_numbers ORDER BY number ASC LIMIT 1")
-    max_query = sqlalchemy.text("SELECT number, instance_name FROM generated_numbers ORDER BY number DESC LIMIT 1")
+    min_query = sqlalchemy.text("SELECT number, instance_id FROM numbers ORDER BY number ASC LIMIT 1")
+    max_query = sqlalchemy.text("SELECT number, instance_id FROM numbers ORDER BY number DESC LIMIT 1")
     with pool.connect() as db_connection:
         min_result = db_connection.execute(min_query).fetchone()
         max_result = db_connection.execute(max_query).fetchone()
 
     return jsonify({
-        "min": {"number": min_result[0], "instance_name": min_result[1]},
-        "max": {"number": max_result[0], "instance_name": max_result[1]},
+        "min": {"number": min_result[0], "instance_id": min_result[1]},
+        "max": {"number": max_result[0], "instance_id": max_result[1]},
     })
-
-@app.route('/restart', methods=['GET'])
-def restart():
-    print("restart called")
-    query = sqlalchemy.text("TRUNCATE TABLE generated_numbers")
-    with pool.connect() as db_connection:
-        db_connection.execute(query)
-        db_connection.commit()
-    return jsonify({"message": "Table reset successful."})
 
 if __name__ == '_main_':
     app.run(host='0.0.0.0', port = 8080)
